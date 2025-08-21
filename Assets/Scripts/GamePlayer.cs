@@ -11,17 +11,24 @@ namespace CTF
     {
         [SyncVar] public string playerName = "Player";
         [SyncVar] public int playerId = 0;
-        [SyncVar (hook = nameof(OnHasFlagChanged))] public bool hasFlag = false;
-        [SyncVar] public Base stolenBase = null;
+        [SyncVar] public bool hasFlag = false;
+        [SyncVar (hook =nameof (OnStolenBaseChanged))] public Base stolenBase = null;
         [SerializeField] private Renderer playerRenderer;
         [SerializeField] private Renderer flagIndicatorRenderer;
-
-        public Color playerColor = Color.red;
+        [SyncVar] public Color playerColor = Color.red;
 
         public override void OnStartClient()
         {
             base.OnStartClient();
             playerRenderer.material.color = playerColor;
+        }
+
+        [Server]
+        public void SetStolenBase(Base baseObject)
+        {
+            if (baseObject == null) Debug.LogWarning("Clearing stolen base");
+            else Debug.Log($"Setting stolen base to: {baseObject.name}");
+            stolenBase = baseObject;
         }
 
         public void OnTriggerEnter(Collider other)
@@ -36,6 +43,7 @@ namespace CTF
                 }
                 else if (baseObject.owner != this && !hasFlag && baseObject.hasFlag)
                 {
+                    Debug.Log($"Player {playerName} captured flag from base {baseObject.name}");
                     CmdRequestCaptureFlag(baseObject);
                 }
 
@@ -54,11 +62,18 @@ namespace CTF
             // Just notify GameManager
             CTFGameManager.Instance.HandleFlagDeposit(this, homeBase);
         }
-
-        private void OnHasFlagChanged(bool oldValue, bool newValue)
+        
+        private void OnStolenBaseChanged(Base oldBase, Base newBase)
         {
-            flagIndicatorRenderer.enabled = newValue;
-            flagIndicatorRenderer.material.color = newValue ? stolenBase.baseColor : Color.clear;
+            if (newBase == null)
+            {
+                flagIndicatorRenderer.enabled = false;
+            }
+            else
+            {
+                flagIndicatorRenderer.enabled = true;
+                flagIndicatorRenderer.material.color = stolenBase.baseColor;
+            }
         }
     }
 }

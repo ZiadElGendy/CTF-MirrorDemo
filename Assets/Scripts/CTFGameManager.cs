@@ -68,8 +68,6 @@ namespace CTF
             }
 
             activePlayers.Remove(player.playerId);
-            Debug.Log($"GameManager: Player {player.playerId} disconnected, base freed");
-
 
         }
 
@@ -83,17 +81,22 @@ namespace CTF
             if (!capturedBase.hasFlag) return;
 
             capturedBase.hasFlag = false;
+            player.SetStolenBase(capturedBase);
             player.hasFlag = true;
-            player.stolenBase = capturedBase;
+
         }
+
         [Server]
         public void HandleFlagDeposit(GamePlayer player, Base homeBase)
         {
+            //Debug.Log("1");
             if (!player.hasFlag || homeBase.owner != player) return;
-
+            //Debug.Log("2");
             player.hasFlag = false;
+            //Debug.Log("3");
             player.stolenBase.hasFlag = true;
-            player.stolenBase = null;
+            //Debug.Log("4");
+            player.SetStolenBase(null);
 
             AddScore(player, 100);
         }
@@ -114,5 +117,7 @@ namespace CTF
         }
 
         #endregion
+
+
     }
 }

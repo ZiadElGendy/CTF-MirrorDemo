@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 9ba2c58d6952be584aba5b87e51db518, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -197,7 +197,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 8090dd1425520a6db8b04adb6d020236, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -558,7 +558,8 @@ MonoBehaviour:
   playerPrefab: {fileID: 5965086018029466702, guid: 72b3e2bed8eec9f7a9db954ed4b44b5a, type: 3}
   autoCreatePlayer: 1
   playerSpawnMethod: 0
-  spawnPrefabs: []
+  spawnPrefabs:
+  - {fileID: 0}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2
@@ -575,8 +576,6 @@ MonoBehaviour:
   evaluationInterval: 3
   timeInterpolationGui: 0
   gameManager: {fileID: 1316124580}
-  inactivePlayers: 00000000010000000200000003000000
-  activePlayers: 
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1096,7 +1095,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -7168870483365499315, guid: d4dd2b23610e017a493d93e394386464, type: 3}
       propertyPath: sceneId
-      value: 3591297653
+      value: 3749535194
       objectReference: {fileID: 0}
     - target: {fileID: 1739858467822844636, guid: d4dd2b23610e017a493d93e394386464, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1168,7 +1167,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -7168870483365499315, guid: d4dd2b23610e017a493d93e394386464, type: 3}
       propertyPath: sceneId
-      value: 2204899228
+      value: 1786247416
       objectReference: {fileID: 0}
     - target: {fileID: 1739858467822844636, guid: d4dd2b23610e017a493d93e394386464, type: 3}
       propertyPath: m_LocalPosition.x

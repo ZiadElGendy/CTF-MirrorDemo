@@ -12,141 +12,13 @@ namespace CTF
 {
     public class CTFNetworkManager : NetworkManager
     {
-        // Overrides the base singleton so we don't
-        // have to cast to this type everywhere.
         public static new CTFNetworkManager singleton => (CTFNetworkManager)NetworkManager.singleton;
         public CTFGameManager gameManager;
-        [SerializeField] private List<int> inactivePlayers = new List<int> { 0, 1, 2, 3 };
-        [SerializeField] private List<int> activePlayers = new List<int>(4);
-
-        /// <summary>
-        /// Runs on both Server and Client
-        /// Networking is NOT initialized when this fires
-        /// </summary>
-        public override void Awake()
-        {
-            base.Awake();
-        }
-
-        #region Unity Callbacks
-
-        public override void OnValidate()
-        {
-            base.OnValidate();
-        }
-
-        /// <summary>
-        /// Runs on both Server and Client
-        /// Networking is NOT initialized when this fires
-        /// </summary>
-        public override void Start()
-        {
-            base.Start();
-        }
-
-        /// <summary>
-        /// Runs on both Server and Client
-        /// </summary>
-        public override void LateUpdate()
-        {
-            base.LateUpdate();
-        }
-
-        /// <summary>
-        /// Runs on both Server and Client
-        /// </summary>
-        public override void OnDestroy()
-        {
-            base.OnDestroy();
-        }
-
-        #endregion
-
-        #region Start & Stop
-
-        /// <summary>
-        /// Set the frame rate for a headless server.
-        /// <para>Override if you wish to disable the behavior or set your own tick rate.</para>
-        /// </summary>
-        public override void ConfigureHeadlessFrameRate()
-        {
-            base.ConfigureHeadlessFrameRate();
-        }
-
-        #endregion
-
-        #region Scene Management
-
-        /// <summary>
-        /// This causes the server to switch scenes and sets the networkSceneName.
-        /// <para>Clients that connect to this server will automatically switch to this scene. This is called automatically if onlineScene or offlineScene are set, but it can be called from user code to switch scenes again while the game is in progress. This automatically sets clients to be not-ready. The clients must call NetworkClient.Ready() again to participate in the new scene.</para>
-        /// </summary>
-        /// <param name="newSceneName"></param>
-        public override void ServerChangeScene(string newSceneName)
-        {
-            base.ServerChangeScene(newSceneName);
-        }
-
-        /// <summary>
-        /// Called from ServerChangeScene immediately before SceneManager.LoadSceneAsync is executed
-        /// <para>This allows server to do work / cleanup / prep before the scene changes.</para>
-        /// </summary>
-        /// <param name="newSceneName">Name of the scene that's about to be loaded</param>
-        public override void OnServerChangeScene(string newSceneName)
-        {
-        }
-
-        /// <summary>
-        /// Called on the server when a scene is completed loaded, when the scene load was initiated by the server with ServerChangeScene().
-        /// </summary>
-        /// <param name="sceneName">The name of the new scene.</param>
-        public override void OnServerSceneChanged(string sceneName)
-        {
-        }
-
-        /// <summary>
-        /// Called from ClientChangeScene immediately before SceneManager.LoadSceneAsync is executed
-        /// <para>This allows client to do work / cleanup / prep before the scene changes.</para>
-        /// </summary>
-        /// <param name="newSceneName">Name of the scene that's about to be loaded</param>
-        /// <param name="sceneOperation">Scene operation that's about to happen</param>
-        /// <param name="customHandling">true to indicate that scene loading will be handled through overrides</param>
-        public override void OnClientChangeScene(string newSceneName, SceneOperation sceneOperation,
-            bool customHandling)
-        {
-        }
-
-        /// <summary>
-        /// Called on clients when a scene has completed loaded, when the scene load was initiated by the server.
-        /// <para>Scene changes can cause player objects to be destroyed. The default implementation of OnClientSceneChanged in the NetworkManager is to add a player object for the connection if no player object exists.</para>
-        /// </summary>
-        public override void OnClientSceneChanged()
-        {
-            base.OnClientSceneChanged();
-        }
-
-        #endregion
+        private SortedSet<int> _activePlayers = new SortedSet<int>();
+        private SortedSet<int> _inactivePlayers = new SortedSet<int>{0,1,2,3};
+        
 
         #region Server System Callbacks
-
-        /// <summary>
-        /// Called on the server when a new client connects.
-        /// <para>Unity calls this on the Server when a Client connects to the Server. Use an override to tell the NetworkManager what to do when a client connects to the server.</para>
-        /// </summary>
-        /// <param name="conn">Connection from client.</param>
-        public override void OnServerConnect(NetworkConnectionToClient conn)
-        {
-        }
-
-        /// <summary>
-        /// Called on the server when a client is ready.
-        /// <para>The default implementation of this function calls NetworkServer.SetClientReady() to continue the network setup process.</para>
-        /// </summary>
-        /// <param name="conn">Connection from client.</param>
-        public override void OnServerReady(NetworkConnectionToClient conn)
-        {
-            base.OnServerReady(conn);
-        }
 
         /// <summary>
         /// Called on the server when a client adds a new player with ClientScene.AddPlayer.
@@ -155,7 +27,7 @@ namespace CTF
         /// <param name="conn">Connection from client.</param>
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
-            int gameId = activatePlayer();
+            int gameId = ActivatePlayer();
             Debug.Log($"Adding player {gameId} for connection {conn.connectionId}");
 
             // Get spawn position from GameManager
@@ -191,33 +63,11 @@ namespace CTF
                 {
                     int gameId = gamePlayer.playerId;
                     CTFGameManager.Instance.OnPlayerDisconnected(gamePlayer);
-                    deactivatePlayer(gameId);
+                    DeactivatePlayer(gameId);
                 }
             }
 
             base.OnServerDisconnect(conn);
-        }
-
-        /// <summary>
-        /// Called on server when transport raises an error.
-        /// <para>NetworkConnection may be null.</para>
-        /// </summary>
-        /// <param name="conn">Connection of the client...may be null</param>
-        /// <param name="transportError">TransportError enum</param>
-        /// <param name="message">String message of the error.</param>
-        public override void OnServerError(NetworkConnectionToClient conn, TransportError transportError,
-            string message)
-        {
-        }
-
-        /// <summary>
-        /// Called on server when transport raises an exception.
-        /// <para>NetworkConnection may be null.</para>
-        /// </summary>
-        /// <param name="conn">Connection of the client...may be null</param>
-        /// <param name="exception">Exception thrown from the Transport.</param>
-        public override void OnServerTransportException(NetworkConnectionToClient conn, Exception exception)
-        {
         }
 
         #endregion
@@ -267,87 +117,37 @@ namespace CTF
         }
 
         #endregion
-
-        #region Start & Stop Callbacks
-
-        // Since there are multiple versions of StartServer, StartClient and StartHost, to reliably customize
-        // their functionality, users would need override all the versions. Instead these callbacks are invoked
-        // from all versions, so users only need to implement this one case.
-
-        /// <summary>
-        /// This is invoked when a host is started.
-        /// <para>StartHost has multiple signatures, but they all cause this hook to be called.</para>
-        /// </summary>
-        public override void OnStartHost()
-        {
-        }
-
-        /// <summary>
-        /// This is invoked when a server is started - including when a host is started.
-        /// <para>StartServer has multiple signatures, but they all cause this hook to be called.</para>
-        /// </summary>
-        public override void OnStartServer()
-        {
-
-        }
-
-        /// <summary>
-        /// This is invoked when the client is started.
-        /// </summary>
-        public override void OnStartClient()
-        {
-        }
-
-        /// <summary>
-        /// This is called when a host is stopped.
-        /// </summary>
-        public override void OnStopHost()
-        {
-        }
-
-        /// <summary>
-        /// This is called when a server is stopped - including when a host is stopped.
-        /// </summary>
-        public override void OnStopServer()
-        {
-        }
-
-        /// <summary>
-        /// This is called when a client is stopped.
-        /// </summary>
-        public override void OnStopClient()
-        {
-        }
-
-        #endregion
-
+        
         #region User Methods
-
-        private int activatePlayer()
+        private int ActivatePlayer()
         {
-            if (inactivePlayers.Count == 0)
+            if (_inactivePlayers.Count == 0)
             {
                 Debug.LogWarning("No inactive players available to activate.");
-                return -1; // No players available
+                return -1;
             }
-            int userId = inactivePlayers[0];
-            inactivePlayers.RemoveAt(0);
-            activePlayers.Add(userId);
+
+            // Get and remove the first (lowest) inactive player
+            int userId = _inactivePlayers.Min;
+            _inactivePlayers.Remove(userId);
+            _activePlayers.Add(userId);
+
+            Debug.Log($"Activated player {userId}. Active players: {string.Join(", ", _activePlayers)}");
             return userId;
         }
 
-        private int deactivatePlayer(int userId)
+        private int DeactivatePlayer(int userId)
         {
-            if (!activePlayers.Contains(userId))
+            if (!_activePlayers.Remove(userId))
             {
                 Debug.LogWarning($"Player {userId} is not active.");
-                return -1; // Player not found
+                return -1;
             }
-            activePlayers.Remove(userId);
-            inactivePlayers.Add(userId);
-            return userId; // Return the deactivated player ID
-        }
 
+            _inactivePlayers.Add(userId);
+            Debug.Log($"Deactivated player {userId}. Active players: {string.Join(", ", _activePlayers)}");
+            return userId;
+        }
         #endregion
     }
 }

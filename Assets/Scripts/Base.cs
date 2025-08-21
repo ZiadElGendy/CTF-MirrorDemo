@@ -16,28 +16,27 @@ namespace CTF
         [SerializeField] private GameObject flag;
         [SerializeField] private Renderer baseRenderer;
 
-        [SyncVar(hook = nameof(OnBaseColorChanged))]
+        [SyncVar]
         public Color baseColor = Color.white;
 
         private void Start()
         {
-            UpdateBaseColors(baseColor);
+            UpdateBaseColors();
         }
 
         private void OnOwnerChanged(GamePlayer oldOwner, GamePlayer newOwner)
         {
             if (newOwner != null)
             {
-                Debug.Log($"Base {name} owner changed to {newOwner.playerName}");
                 // Update color based on new owner's color
                 if (newOwner.playerColor != baseColor)
                 {
                     baseColor = newOwner.playerColor;
+                    UpdateBaseColors();
                 }
             }
             else
             {
-                Debug.Log($"Base {name} owner cleared");
                 // Reset to default color if owner is null
                 baseColor = Color.white;
             }
@@ -45,7 +44,7 @@ namespace CTF
 
         private void OnBaseColorChanged(Color oldColor, Color newColor)
         {
-            UpdateBaseColors(newColor);
+            UpdateBaseColors();
         }
 
         private void OnHasFlagChanged(bool oldValue, bool newValue)
@@ -55,18 +54,20 @@ namespace CTF
         }
 
         // Update visual colors on all clients
-        private void UpdateBaseColors(Color newColor)
+        private void UpdateBaseColors()
         {
-            Debug.Log($"Updating base colors to {newColor} for base {name}");
             if (flagClothRenderer == null || baseRenderer == null)
             {
                 Debug.LogError("Flag or Base Renderer is not assigned in the Base component.");
                 return;
             }
-            flagClothRenderer.material.color = newColor;
+
+            Debug.Log("Updating base colors");
+            flagClothRenderer.material.color = baseColor;
             //change alpha so that base is transparent
-            newColor.a = 0.25f;
-            baseRenderer.material.color = newColor;
+            Color transparentColor = baseColor;
+            transparentColor.a = 0.25f;
+            baseRenderer.material.color = transparentColor;
         }
 
         [Server]
@@ -81,12 +82,6 @@ namespace CTF
 
             owner = newOwner;
             Debug.Log($"Base {name} is now owned by {newOwner.playerName}");
-        }
-
-        [Server]
-        public void SetBaseColor(Color color)
-        {
-            baseColor = color;
         }
     }
 }
