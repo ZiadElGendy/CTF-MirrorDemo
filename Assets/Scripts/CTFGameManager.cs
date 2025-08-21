@@ -9,45 +9,110 @@ namespace CTF
     {
         public static CTFGameManager Instance { get; private set; }
         public List<Base> bases = new List<Base>();
+        private Dictionary<int, GamePlayer> activePlayers = new Dictionary<int, GamePlayer>();
+        public Dictionary<GamePlayer, int> playerScores = new Dictionary<GamePlayer, int>();
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance == null) Instance = this;
+            else Destroy(gameObject);
+        }
+
+        #region Getters and Setters
+
+        public Transform GetPlayerSpawnPoint(int playerId)
+        {
+            Base playerBase = GetBase(playerId);
+            Debug.Log($"GetPlayerSpawnPoint: Player {playerId} base is {playerBase?.name}");
+            return playerBase?.transform;
+        }
+
+        public Base GetBase(int playerId)
+        {
+            if (playerId >= 0 && playerId < bases.Count)
+                return bases[playerId];
+            return null;
+        }
+
+        #endregion
+
+        #region Network Hooks
+
+        [Server]
+        public void OnPlayerConnected(GamePlayer player)
+        {
+            // Make sure player is not rotated to ensure movement works correctly
+            player.transform.rotation = Quaternion.identity;
+            // Assign random color
+            player.playerColor =
+                new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+            // Update game state
+            Base assignedBase = GetBase(player.playerId);
+            if (assignedBase != null)
             {
-                Destroy(gameObject);
-                return;
+                assignedBase.owner = player;
+                activePlayers[player.playerId] = player;
             }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+
+            Debug.Log($"GameManager: Player {player.playerId} connected and assigned to base");
         }
 
         [Server]
-        public void AssignPlayerToBase(GamePlayer player, Base baseToAssign)
+        public void OnPlayerDisconnected(GamePlayer player)
         {
-            if (baseToAssign == null || player == null) return;
-
-            if (baseToAssign.owner != null)
+            // Update game state
+            Base assignedBase = GetBase(player.playerId);
+            if (assignedBase != null)
             {
-                Debug.LogWarning($"Base {baseToAssign.baseId} is already owned by {baseToAssign.owner.PlayerName}");
-                return;
+                assignedBase.owner = null;
             }
 
-            baseToAssign.owner = player;
-            Debug.Log($"{player.PlayerName} has captured base {baseToAssign.baseId}");
+            activePlayers.Remove(player.playerId);
+            Debug.Log($"GameManager: Player {player.playerId} disconnected, base freed");
+
+
+        }
+
+
+        #endregion
+
+        #region Game Logic
+        [Server]
+        public void HandleFlagCapture(GamePlayer player, Base capturedBase)
+        {
+            if (!capturedBase.hasFlag) return;
+
+            capturedBase.hasFlag = false;
+            player.hasFlag = true;
+            player.stolenBase = capturedBase;
+        }
+        [Server]
+        public void HandleFlagDeposit(GamePlayer player, Base homeBase)
+        {
+            if (!player.hasFlag || homeBase.owner != player) return;
+
+            player.hasFlag = false;
+            player.stolenBase.hasFlag = true;
+            player.stolenBase = null;
+
+            AddScore(player, 100);
         }
 
         [Server]
-        public Transform GetBase(int baseId)
+        public void AddScore(GamePlayer player, int score)
         {
-            try
+            if (!playerScores.ContainsKey(player))
             {
-                return bases[baseId];
+                playerScores[player] = 0;
             }
-            catch (Exception e)
+            playerScores[player] += score;
+            //print scoreboard
+            foreach (var kvp in playerScores)
             {
-                Debug.LogWarning($"Base with ID {baseId} not found. Exception: {e.Message}");
-                return null;
+                Debug.Log($"Player {kvp.Key.playerName} (ID: {kvp.Key.playerId}) Score: {kvp.Value}");
             }
         }
+
+        #endregion
     }
 }
