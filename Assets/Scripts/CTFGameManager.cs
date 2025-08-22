@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Mirror;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace CTF
@@ -9,6 +11,7 @@ namespace CTF
     {
         public static CTFGameManager Instance { get; private set; }
         public List<Base> bases = new List<Base>();
+        public TextMeshProUGUI scoreboardText;
         private Dictionary<int, GamePlayer> activePlayers = new Dictionary<int, GamePlayer>();
         public Dictionary<GamePlayer, int> playerScores = new Dictionary<GamePlayer, int>();
 
@@ -104,15 +107,40 @@ namespace CTF
         [Server]
         public void AddScore(GamePlayer player, int score)
         {
+            Debug.Log($"AddScore called on server: {isServer}. Player: {player.playerName}, Score: {score}");
+
             if (!playerScores.ContainsKey(player))
             {
                 playerScores[player] = 0;
             }
             playerScores[player] += score;
-            //print scoreboard
+            Debug.Log($"Player {player.playerName} scored {score} points. Total: {playerScores[player]}");
+
+            RpcUpdateScoreboard();
+            Debug.Log("UpdateScoreboard RPC called");
+        }
+
+        //FIXME: Why does this not get called?
+
+        [ClientRpc]
+        public void RpcUpdateScoreboard()
+        {
+            Debug.Log($"UpdateScoreboard RPC received on client. IsClient: {isClient}");
+
+            string scoreboard = "";
             foreach (var kvp in playerScores)
             {
-                Debug.Log($"Player {kvp.Key.playerName} (ID: {kvp.Key.playerId}) Score: {kvp.Value}");
+                scoreboard += $"{kvp.Key.playerName} (ID: {kvp.Key.playerId}) Score: {kvp.Value}\n";
+            }
+            Debug.Log($"Scoreboard updated:\n{scoreboard}");
+
+            if (scoreboardText != null)
+            {
+                scoreboardText.text = scoreboard;
+            }
+            else
+            {
+                Debug.LogError("scoreboardText is null!");
             }
         }
 
