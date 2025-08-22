@@ -17,6 +17,18 @@ namespace CTF
         [SerializeField] private Renderer flagIndicatorRenderer;
         [SyncVar] public Color playerColor = Color.red;
 
+        public override void OnStartLocalPlayer()
+        {
+            base.OnStartLocalPlayer();
+            CmdSetPlayerName(PlayerPrefs.GetString("PlayerName"));
+        }
+        [Command]
+        private void CmdSetPlayerName(string name)
+        {
+            playerName = name;
+            Debug.Log($"Player name set to: {playerName}");
+        }
+
         public override void OnStartClient()
         {
             base.OnStartClient();

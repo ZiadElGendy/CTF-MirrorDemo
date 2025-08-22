@@ -13,10 +13,8 @@ namespace CTF
     public class CTFNetworkManager : NetworkManager
     {
         public static new CTFNetworkManager singleton => (CTFNetworkManager)NetworkManager.singleton;
-        public CTFGameManager gameManager;
         private SortedSet<int> _activePlayers = new SortedSet<int>();
         private SortedSet<int> _inactivePlayers = new SortedSet<int>{0,1,2,3};
-        
 
         #region Server System Callbacks
 
@@ -39,7 +37,7 @@ namespace CTF
 
             player.name = $"{playerPrefab.name} [connId={conn.connectionId}]";
 
-            // Set the playerId on the player object
+            // Set the player ID and name on the player object
             GamePlayer gamePlayer = player.GetComponent<GamePlayer>();
             gamePlayer.playerId = gameId;
 
