@@ -1,0 +1,8 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <engine:VisualElement style="flex-grow: 1;">
+        <engine:Label text="CAPTURE THE FLAG" style="align-items: center; align-content: center; align-self: center;" />
+        <engine:TextField label="Name" placeholder-text="filler text" style="flex-direction: column; align-self: center; align-items: stretch; align-content: auto;" />
+        <engine:Button text="Host" style="justify-content: space-between; align-self: center;" />
+        <engine:Button text="Join" style="align-self: center;" />
+    </engine:VisualElement>
+</engine:UXML>
