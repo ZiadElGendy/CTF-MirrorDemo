@@ -116,32 +116,27 @@ namespace CTF
             playerScores[player] += score;
             Debug.Log($"Player {player.playerName} scored {score} points. Total: {playerScores[player]}");
 
-            RpcUpdateScoreboard();
-            Debug.Log("UpdateScoreboard RPC called");
+            ServerUpdateScoreboard();
+            Debug.Log("UpdateScoreboard Server called");
         }
 
-        //FIXME: Why does this not get called?
-
-        [ClientRpc]
-        public void RpcUpdateScoreboard()
+        [Server]
+        public void ServerUpdateScoreboard()
         {
-            Debug.Log($"UpdateScoreboard RPC received on client. IsClient: {isClient}");
-
             string scoreboard = "";
             foreach (var kvp in playerScores)
             {
                 scoreboard += $"{kvp.Key.playerName} (ID: {kvp.Key.playerId}) Score: {kvp.Value}\n";
             }
-            Debug.Log($"Scoreboard updated:\n{scoreboard}");
-
-            if (scoreboardText != null)
-            {
-                scoreboardText.text = scoreboard;
-            }
-            else
-            {
-                Debug.LogError("scoreboardText is null!");
-            }
+            RpcUpdateScoreboard(scoreboard);
+            Debug.Log("UpdateScoreboard Server called");
+        }
+        //FIXME: Why does this not get called?
+        [ClientRpc]
+        public void RpcUpdateScoreboard(string scoreboardTextString)
+        {
+            Debug.Log($"UpdateScoreboard RPC received on client. IsClient: {isClient}");
+            scoreboardText.text = scoreboardTextString;
         }
 
         #endregion

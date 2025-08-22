@@ -16,7 +16,7 @@ namespace CTF
         [SerializeField] private GameObject flag;
         [SerializeField] private Renderer baseRenderer;
 
-        [SyncVar]
+        [SyncVar(hook = nameof(OnBaseColorChanged))]
         public Color baseColor = Color.white;
 
         private void Start()
@@ -32,7 +32,6 @@ namespace CTF
                 if (newOwner.playerColor != baseColor)
                 {
                     baseColor = newOwner.playerColor;
-                    UpdateBaseColors();
                 }
             }
             else
