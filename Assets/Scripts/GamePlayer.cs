@@ -22,6 +22,8 @@ namespace CTF
             base.OnStartLocalPlayer();
             CmdSetPlayerName(PlayerPrefs.GetString("PlayerName"));
         }
+
+
         [Command]
         private void CmdSetPlayerName(string name)
         {

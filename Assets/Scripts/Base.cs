@@ -74,5 +74,12 @@ namespace CTF
 
             owner = newOwner;
         }
+
+        [Server]
+        public void ResetBase()
+        {
+            hasFlag = true;
+            owner = null;
+        }
     }
 }

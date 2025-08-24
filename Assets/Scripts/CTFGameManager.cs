@@ -7,25 +7,13 @@ using UnityEngine;
 
 namespace CTF
 {
-    public class CTFGameManager : NetworkBehaviour
+    public class CTFGameManager : NetworkedSingleton<CTFGameManager>
     {
-        public static CTFGameManager Instance { get; private set; }
         public List<Base> bases = new List<Base>();
         public TextMeshProUGUI scoreboardText;
         private Dictionary<int, GamePlayer> _activePlayers = new Dictionary<int, GamePlayer>();
         public Dictionary<GamePlayer, int> PlayerScores = new Dictionary<GamePlayer, int>();
 
-        private void Awake()
-        {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
 
         #region Getters and Setters
 
@@ -77,7 +65,12 @@ namespace CTF
             Base assignedBase = GetBase(player.playerId);
             if (assignedBase != null)
             {
-                assignedBase.owner = null;
+                assignedBase.ResetBase();
+            }
+            Base stolenBase = player.stolenBase;
+            if (stolenBase != null)
+            {
+                stolenBase.ResetBase();
             }
 
             _activePlayers.Remove(player.playerId);
@@ -88,6 +81,8 @@ namespace CTF
                 PlayerScores.Remove(player);
                 ServerUpdateScoreboard();
             }
+
+            //  Reset stolen base if player had one
         }
 
 
