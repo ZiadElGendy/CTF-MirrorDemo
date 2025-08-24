@@ -12,13 +12,19 @@ namespace CTF
         public static CTFGameManager Instance { get; private set; }
         public List<Base> bases = new List<Base>();
         public TextMeshProUGUI scoreboardText;
-        private Dictionary<int, GamePlayer> activePlayers = new Dictionary<int, GamePlayer>();
-        public Dictionary<GamePlayer, int> playerScores = new Dictionary<GamePlayer, int>();
+        private Dictionary<int, GamePlayer> _activePlayers = new Dictionary<int, GamePlayer>();
+        public Dictionary<GamePlayer, int> PlayerScores = new Dictionary<GamePlayer, int>();
 
         private void Awake()
         {
-            if (Instance == null) Instance = this;
-            else Destroy(gameObject);
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
         #region Getters and Setters
@@ -26,7 +32,6 @@ namespace CTF
         public Transform GetPlayerSpawnPoint(int playerId)
         {
             Base playerBase = GetBase(playerId);
-            Debug.Log($"GetPlayerSpawnPoint: Player {playerId} base is {playerBase?.name}");
             return playerBase?.transform;
         }
 
@@ -54,10 +59,15 @@ namespace CTF
             if (assignedBase != null)
             {
                 assignedBase.owner = player;
-                activePlayers[player.playerId] = player;
+                _activePlayers[player.playerId] = player;
             }
 
-            Debug.Log($"GameManager: Player {player.playerId} connected and assigned to base");
+            // Initialize player score and update scoreboard
+            PlayerScores.TryAdd(player, 0);
+            Debug.Log($"Players in dictionary: {PlayerScores.Count}");
+            Debug.Log($"Contains this player: {PlayerScores.ContainsKey(player)}");
+            Invoke(nameof(ServerUpdateScoreboard), 1f); // Delay to ensure client is ready
+
         }
 
         [Server]
@@ -70,9 +80,16 @@ namespace CTF
                 assignedBase.owner = null;
             }
 
-            activePlayers.Remove(player.playerId);
+            _activePlayers.Remove(player.playerId);
 
+            // Remove player from scores and update scoreboard
+            if (PlayerScores.ContainsKey(player))
+            {
+                PlayerScores.Remove(player);
+                ServerUpdateScoreboard();
+            }
         }
+
 
 
         #endregion
@@ -92,13 +109,9 @@ namespace CTF
         [Server]
         public void HandleFlagDeposit(GamePlayer player, Base homeBase)
         {
-            //Debug.Log("1");
             if (!player.hasFlag || homeBase.owner != player) return;
-            //Debug.Log("2");
             player.hasFlag = false;
-            //Debug.Log("3");
             player.stolenBase.hasFlag = true;
-            //Debug.Log("4");
             player.SetStolenBase(null);
 
             AddScore(player, 100);
@@ -107,31 +120,24 @@ namespace CTF
         [Server]
         public void AddScore(GamePlayer player, int score)
         {
-            Debug.Log($"AddScore called on server: {isServer}. Player: {player.playerName}, Score: {score}");
-
-            if (!playerScores.ContainsKey(player))
-            {
-                playerScores[player] = 0;
-            }
-            playerScores[player] += score;
-            Debug.Log($"Player {player.playerName} scored {score} points. Total: {playerScores[player]}");
+            PlayerScores.TryAdd(player, 0);
+            PlayerScores[player] += score;
 
             ServerUpdateScoreboard();
-            Debug.Log("UpdateScoreboard Server called");
         }
 
         [Server]
         public void ServerUpdateScoreboard()
         {
             string scoreboard = "";
-            foreach (var kvp in playerScores)
+            foreach (var kvp in PlayerScores)
             {
-                scoreboard += $"{kvp.Key.playerName} (ID: {kvp.Key.playerId}) Score: {kvp.Value}\n";
+                Debug.Log($"{kvp.Key.playerName}: {kvp.Value}");
+                scoreboard += $"{kvp.Key.playerName}: {kvp.Value}\n";
             }
+            Debug.Log(scoreboard);
             RpcUpdateScoreboard(scoreboard);
-            Debug.Log("UpdateScoreboard Server called");
         }
-        //FIXME: Why does this not get called?
         [ClientRpc]
         public void RpcUpdateScoreboard(string scoreboardTextString)
         {

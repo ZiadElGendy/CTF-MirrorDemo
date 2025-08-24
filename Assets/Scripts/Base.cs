@@ -28,11 +28,7 @@ namespace CTF
         {
             if (newOwner != null)
             {
-                // Update color based on new owner's color
-                if (newOwner.playerColor != baseColor)
-                {
-                    baseColor = newOwner.playerColor;
-                }
+                baseColor = newOwner.playerColor;
             }
             else
             {
@@ -57,11 +53,9 @@ namespace CTF
         {
             if (flagClothRenderer == null || baseRenderer == null)
             {
-                Debug.LogError("Flag or Base Renderer is not assigned in the Base component.");
                 return;
             }
 
-            Debug.Log("Updating base colors");
             flagClothRenderer.material.color = baseColor;
             //change alpha so that base is transparent
             Color transparentColor = baseColor;
@@ -74,13 +68,11 @@ namespace CTF
         {
             if (newOwner == null)
             {
-                Debug.LogWarning("Attempted to set owner to null.");
                 owner = null;
                 return;
             }
 
             owner = newOwner;
-            Debug.Log($"Base {name} is now owned by {newOwner.playerName}");
         }
     }
 }

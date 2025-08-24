@@ -26,7 +26,6 @@ namespace CTF
         private void CmdSetPlayerName(string name)
         {
             playerName = name;
-            Debug.Log($"Player name set to: {playerName}");
         }
 
         public override void OnStartClient()
@@ -38,8 +37,6 @@ namespace CTF
         [Server]
         public void SetStolenBase(Base baseObject)
         {
-            if (baseObject == null) Debug.LogWarning("Clearing stolen base");
-            else Debug.Log($"Setting stolen base to: {baseObject.name}");
             stolenBase = baseObject;
         }
 
@@ -55,7 +52,6 @@ namespace CTF
                 }
                 else if (baseObject.owner != this && !hasFlag && baseObject.hasFlag)
                 {
-                    Debug.Log($"Player {playerName} captured flag from base {baseObject.name}");
                     CmdRequestCaptureFlag(baseObject);
                 }
 

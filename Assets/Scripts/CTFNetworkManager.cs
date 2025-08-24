@@ -26,7 +26,6 @@ namespace CTF
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
             int gameId = ActivatePlayer();
-            Debug.Log($"Adding player {gameId} for connection {conn.connectionId}");
 
             // Get spawn position from GameManager
             Transform startPos = CTFGameManager.Instance.GetPlayerSpawnPoint(gameId);
@@ -70,58 +69,11 @@ namespace CTF
 
         #endregion
 
-        #region Client System Callbacks
-
-        /// <summary>
-        /// Called on the client when connected to a server.
-        /// <para>The default implementation of this function sets the client as ready and adds a player. Override the function to dictate what happens when the client connects.</para>
-        /// </summary>
-        public override void OnClientConnect()
-        {
-            base.OnClientConnect();
-        }
-
-        /// <summary>
-        /// Called on clients when disconnected from a server.
-        /// <para>This is called on the client when it disconnects from the server. Override this function to decide what happens when the client disconnects.</para>
-        /// </summary>
-        public override void OnClientDisconnect()
-        {
-        }
-
-        /// <summary>
-        /// Called on clients when a servers tells the client it is no longer ready.
-        /// <para>This is commonly used when switching scenes.</para>
-        /// </summary>
-        public override void OnClientNotReady()
-        {
-        }
-
-        /// <summary>
-        /// Called on client when transport raises an error.</summary>
-        /// </summary>
-        /// <param name="transportError">TransportError enum.</param>
-        /// <param name="message">String message of the error.</param>
-        public override void OnClientError(TransportError transportError, string message)
-        {
-        }
-
-        /// <summary>
-        /// Called on client when transport raises an exception.</summary>
-        /// </summary>
-        /// <param name="exception">Exception thrown from the Transport.</param>
-        public override void OnClientTransportException(Exception exception)
-        {
-        }
-
-        #endregion
-        
         #region User Methods
         private int ActivatePlayer()
         {
             if (_inactivePlayers.Count == 0)
             {
-                Debug.LogWarning("No inactive players available to activate.");
                 return -1;
             }
 
@@ -130,7 +82,6 @@ namespace CTF
             _inactivePlayers.Remove(userId);
             _activePlayers.Add(userId);
 
-            Debug.Log($"Activated player {userId}. Active players: {string.Join(", ", _activePlayers)}");
             return userId;
         }
 
@@ -138,12 +89,10 @@ namespace CTF
         {
             if (!_activePlayers.Remove(userId))
             {
-                Debug.LogWarning($"Player {userId} is not active.");
                 return -1;
             }
 
             _inactivePlayers.Add(userId);
-            Debug.Log($"Deactivated player {userId}. Active players: {string.Join(", ", _activePlayers)}");
             return userId;
         }
         #endregion
